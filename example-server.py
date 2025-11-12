@@ -134,5 +134,10 @@ if __name__ == '__main__':
     print('  2. Use your computer\'s IP address instead of localhost')
     print(f'  3. Enter: http://YOUR_IP:{PORT}/api/config in the app')
     print('=' * 60)
+    print('')
+    print('Note: Debug mode is disabled for security.')
+    print('Set FLASK_DEBUG=1 environment variable to enable debugging.')
     
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    # Debug mode disabled for security - enable only in development if needed
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(host='0.0.0.0', port=PORT, debug=debug_mode)
