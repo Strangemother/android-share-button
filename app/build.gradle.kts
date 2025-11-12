@@ -9,21 +9,48 @@ android {
 
     defaultConfig {
         applicationId = "com.sharebutton.app"
-        minSdk = 34
+        minSdk = 24  // Android 7.0+
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
+        
+        // Better app metadata
+        setProperty("archivesBaseName", "share-button-v$versionName")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Enable code shrinking, obfuscation, and optimization
+            isMinifyEnabled = true
+            isShrinkResources = true
+            
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            
+            // For signing, you'll need to create a keystore:
+            // keytool -genkey -v -keystore release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias share-button
+            // Then uncomment and configure:
+            // signingConfig = signingConfigs.getByName("release")
+        }
+        
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-DEBUG"
+            isDebuggable = true
         }
     }
+    
+    // Optional: Add signing configuration for release builds
+    // signingConfigs {
+    //     create("release") {
+    //         storeFile = file("release-key.jks")
+    //         storePassword = System.getenv("KEYSTORE_PASSWORD")
+    //         keyAlias = "share-button"
+    //         keyPassword = System.getenv("KEY_PASSWORD")
+    //     }
+    // }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

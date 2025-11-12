@@ -48,6 +48,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadConfiguration() {
         if (configManager.isConfigured()) {
+            // Load the saved API URL into the text field
+            val savedApiUrl = configManager.apiUrl
+            if (!savedApiUrl.isNullOrEmpty()) {
+                binding.apiEndpointEditText.setText(savedApiUrl)
+            }
             displayConfiguration()
         }
     }

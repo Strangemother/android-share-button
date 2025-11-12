@@ -56,3 +56,8 @@ pip-delete-this-directory.txt
 *.swp
 *.swo
 *~
+
+# Keystore files - NEVER commit these!
+*.jks
+*.keystore
+keystore.properties

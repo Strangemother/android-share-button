@@ -35,7 +35,8 @@ def get_config():
     config = {
         'name': 'My Personal List',
         'icon': 'https://via.placeholder.com/64/6200EE/FFFFFF?text=Share',
-        'endpoint': f'http://localhost:{PORT}/api/share'
+        # 'endpoint': f'http://localhost:{PORT}/api/share'
+        'endpoint': 'https://silver-space-orbit-xxgvqx4952p969-3000.app.github.dev/api/share'
     }
     
     print(f'Configuration requested: {config}')
