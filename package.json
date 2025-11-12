@@ -1,0 +1,28 @@
+{
+  "name": "android-share-button-server",
+  "version": "1.0.0",
+  "description": "Example API server for Android Share Button app",
+  "main": "example-server.js",
+  "scripts": {
+    "start": "node example-server.js",
+    "dev": "nodemon example-server.js"
+  },
+  "keywords": [
+    "android",
+    "share",
+    "api",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Node.js example server
+  node-server:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm start"
+    environment:
+      - PORT=3000
+    restart: unless-stopped
+
+  # Python example server (alternative)
+  # Uncomment to use Python instead of Node.js
+  # python-server:
+  #   image: python:3.11-alpine
+  #   working_dir: /app
+  #   volumes:
+  #     - ./:/app
+  #   ports:
+  #     - "3000:3000"
+  #   command: sh -c "pip install -r requirements.txt && python example-server.py"
+  #   environment:
+  #     - PORT=3000
+  #   restart: unless-stopped
