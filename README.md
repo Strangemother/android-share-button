@@ -1,6 +1,6 @@
-# talofa.me 📱
+# talofa.me 
 
-> Note to self: "Hello Me" 🫶
+> Note to self: "Hello Me" 💚 
 
 My personal link stash for Android (currently) and the web. Save links and images from anywhere, store them my way. https://talofa.me 
 
