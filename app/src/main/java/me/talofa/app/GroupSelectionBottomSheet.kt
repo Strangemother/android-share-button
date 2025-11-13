@@ -4,10 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.textfield.TextInputEditText
 
 /**
  * Bottom sheet for selecting a group
@@ -33,6 +36,30 @@ class GroupSelectionBottomSheet : BottomSheetDialogFragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = GroupAdapter(groups) { group ->
             onGroupSelected?.invoke(group)
+            dismiss()
+        }
+        
+        // Setup "Create New Group" functionality
+        val newGroupNameInput = view.findViewById<TextInputEditText>(R.id.newGroupNameInput)
+        val createGroupButton = view.findViewById<Button>(R.id.createGroupButton)
+        
+        createGroupButton.setOnClickListener {
+            val newGroupName = newGroupNameInput.text?.toString()?.trim()
+            
+            if (newGroupName.isNullOrEmpty()) {
+                Toast.makeText(context, "Please enter a group name", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            // Create a new Group with null ID to indicate it's new
+            val newGroup = Group(
+                id = null,
+                name = newGroupName,
+                icon = null,
+                description = null
+            )
+            
+            onGroupSelected?.invoke(newGroup)
             dismiss()
         }
     }

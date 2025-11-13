@@ -74,13 +74,21 @@ class ApiClient {
     suspend fun postGroupSelection(
         endpoint: String,
         shareId: String,
-        groupId: String,
+        groupId: String?,
+        groupName: String?,
         deliveryKey: String? = null
     ): ShareResult = withContext(Dispatchers.IO) {
         try {
             val json = JSONObject().apply {
                 put("share_id", shareId)
-                put("group_id", groupId)
+                
+                // If groupId is null, this is a new group - send group_name instead
+                if (groupId != null) {
+                    put("group_id", groupId)
+                } else if (groupName != null) {
+                    put("group_name", groupName)
+                    put("group_id", JSONObject.NULL)
+                }
             }
 
             val mediaType = "application/json; charset=utf-8".toMediaType()

@@ -222,7 +222,8 @@ class ShareReceiverActivity : AppCompatActivity() {
             .setGroups(groups)
             .setOnGroupSelectedListener { selectedGroup ->
                 // Post group selection with share_id
-                postGroupSelection(shareId, selectedGroup.id)
+                // If group.id is null, it's a new group - pass the name instead
+                postGroupSelection(shareId, selectedGroup.id, selectedGroup.name)
             }
         
         // Finish activity if bottom sheet is dismissed without selection
@@ -235,7 +236,7 @@ class ShareReceiverActivity : AppCompatActivity() {
         bottomSheet.show(supportFragmentManager, "GroupSelectionBottomSheet")
     }
     
-    private fun postGroupSelection(shareId: String, groupId: String) {
+    private fun postGroupSelection(shareId: String, groupId: String?, groupName: String) {
         lifecycleScope.launch {
             val endpoint = configManager.postEndpoint ?: run {
                 Toast.makeText(
@@ -253,6 +254,7 @@ class ShareReceiverActivity : AppCompatActivity() {
                 endpoint = endpoint,
                 shareId = shareId,
                 groupId = groupId,
+                groupName = if (groupId == null) groupName else null,
                 deliveryKey = deliveryKey
             )) {
                 is ApiClient.ShareResult.Success -> {
