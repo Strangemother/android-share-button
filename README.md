@@ -1,199 +1,102 @@
-# Android Share Button
+# talofa.me 📱
 
-A lightweight Android 14+ application that provides a custom share button within typically supported apps. Users can share websites, links, or text to a configured HTTP endpoint.
+Your personal link stash for Android (currently). Save links and images from anywhere, store them your way.
 
-## Features
+## What is this?
 
-- **Custom Share Target**: Appears in the Android share menu alongside other sharing options
-- **Configurable Endpoint**: Set up your own API endpoint to receive shared content
-- **Dynamic Configuration**: Fetch share button name, icon, and endpoint from your API
-- **Simple HTTP POST**: Shared content is sent as JSON to your endpoint
-- **Lightweight**: Minimal dependencies, focusing on core functionality
+talofa.me is a lightweight Android app that lets you capture and store links, screenshots, and text snippets to your own server. Think of it as your personal pocket for everything you find interesting while browsing, reading, or exploring on your phone.
 
-## How It Works
+**Who's it for?**
+- Developers building personal knowledge bases
+- Anyone who collects links for later reference
+- People who want control over their saved content
+- Users building presentation notes, readme lists, or research collections
 
-1. **Install the app** on your Android 14+ device
-2. **Configure the endpoint**: Enter your API URL in the app
-3. **Fetch configuration**: The app calls your API to get:
-   - Share button name (displayed in share menu)
-   - Icon URL (optional, displayed in share menu)
-   - POST endpoint (where shared content will be sent)
-4. **Share content**: Use the share button in any app, select your custom share target
-5. **Content delivered**: The shared content is posted to your endpoint as JSON
+**What makes it special?**
+- No ads, no tracking, just your stuff
+- Share to your own server (or localhost!)
+- Optional grouping and categorization
+- Works with any backend you build
 
-## API Endpoint Requirements
+## ✨ Features
 
-### Configuration Endpoint (GET)
+- **Text & Links**: Share URLs, articles, quotes, anything text-based
+- **Images**: Share screenshots and photos directly 📸
+- **Groups**: Optionally categorize shares into groups (work, personal, etc.)
+- **Self-Hosted**: Point it at your server, no middleman
+- **API-First**: Build automation, CICD triggers, markdown generators, whatever you want
+- **HTTP Support**: Perfect for local development and self-hosted setups
 
-Your API endpoint should respond to GET requests with JSON:
+## 🚀 Quick Start
 
-```json
-{
-  "name": "My Custom Share",
-  "icon": "https://example.com/icon.png",
-  "endpoint": "https://example.com/api/share"
-}
-```
+### Install
 
-**Fields:**
-- `name` (string, optional): Display name for the share target. Default: "Custom Share"
-- `icon` (string, optional): URL to an icon image (PNG, JPG). Displayed in the configuration screen.
-- `endpoint` (string, required): The URL where shared content will be POSTed
+1. Download the APK from [releases](https://github.com/Strangemother/android-share-button/releases)
+2. Enable "Install from unknown sources" on your Android device
+3. Install the APK
 
-### Share Endpoint (POST)
+Or build it yourself - see [BUILDING.md](BUILDING.md)
 
-When content is shared, the app sends a POST request with JSON body:
+### Configure
 
-```json
-{
-  "content": "The shared text or URL",
-  "type": "text",
-  "timestamp": 1699876543210
-}
-```
+1. Open talofa.me
+2. Enter your server URL (e.g., `http://192.168.1.100:8000` or `https://talofa.me/api`)
+3. Optionally add an API key
+4. Tap Setup ✅
 
-**Fields:**
-- `content` (string): The shared content (URL, text, etc.)
-- `type` (string): Content type (currently always "text")
-- `timestamp` (number): Unix timestamp in milliseconds
+### Use It
 
-## Building the App
+Tap share in any app → Select "talofa.me" → Done! Your link/image is saved to your server.
 
-### Prerequisites
+## 🎯 Usage Ideas
 
-- Android Studio Arctic Fox or later
-- Android SDK 34 (Android 14)
-- JDK 17 or later
-- Gradle 8.2+
+**For Personal Use:**
+- Build a reading list from articles you find
+- Save screenshots of inspiration
+- Collect receipts and documents
+- Bookmark recipes while scrolling
 
-### Build Steps
+**For Developers:**
+- Auto-generate changelog entries from shared commits
+- Build a personal documentation site from saved links
+- Trigger CICD workflows from shared content
+- Create markdown-formatted collections automatically
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Strangemother/android-share-button.git
-   cd android-share-button
-   ```
+**For Research:**
+- Organize sources by project groups
+- Save quotes and references instantly
+- Build bibliographies from shared papers
+- Keep track of resources per topic
 
-2. Open the project in Android Studio or build from command line:
-   ```bash
-   ./gradlew assembleDebug
-   ```
+## 🔧 Server Setup
 
-3. Install on device:
-   ```bash
-   ./gradlew installDebug
-   ```
+talofa.me needs a companion server to receive your shares. You can:
+- Run the example server (coming soon)
+- Build your own with any framework (Django, Flask, Express, etc.)
+- Point it at a simple webhook
+- Deploy to Vercel, Railway, or your preferred host
 
-   Or find the APK at: `app/build/outputs/apk/debug/app-debug.apk`
+See [docs/dev/API_FLOW.md](docs/dev/API_FLOW.md) for the API specification.
 
-## Usage
+## 🔮 Coming Soon
 
-### Initial Setup
+- Browser extension
+- Web interface for managing saved content
+- Public API for third-party integrations
+- More share types (files, multiple images)
 
-1. Open the "Share Button" app
-2. Enter your API endpoint URL (e.g., `https://your-server.com/api/config`)
-3. Tap "Setup"
-4. The app will fetch configuration from your endpoint
-5. Verify the displayed name and icon
+The goal: give you every way to push content into your personal space, your rules.
 
-### Sharing Content
+## 📚 Documentation
 
-1. In any app (browser, notes, etc.), tap the Share button
-2. Look for your custom share target name (e.g., "My Custom Share")
-3. Select it to share the content
-4. A toast message confirms successful sharing
+- [API Flow](docs/dev/API_FLOW.md) - How the app communicates with your server
+- [Building](BUILDING.md) - Compile and customize the app
+- More docs coming as features develop
 
-### Testing
+## 🤝 Contributing
 
-Use the "Test Share" button in the app to trigger the Android share sheet with test content.
+This is a personal tool made shareable. PRs welcome! Keep it simple, keep it focused.
 
-## Technical Details
+## 📝 License
 
-### Architecture
-
-- **MainActivity**: Configuration screen where users set up the API endpoint
-- **ShareReceiverActivity**: Handles incoming share intents (ACTION_SEND)
-- **ConfigManager**: Manages persistent storage using SharedPreferences
-- **ApiClient**: Handles all HTTP communication using OkHttp
-
-### Permissions
-
-- `INTERNET`: Required to communicate with your API endpoint
-
-### Dependencies
-
-- AndroidX Core KTX
-- AndroidX AppCompat
-- Material Components for Android
-- ConstraintLayout
-- Kotlin Coroutines
-- OkHttp (HTTP client)
-
-### Supported Share Types
-
-Currently supports:
-- Plain text (`text/plain`)
-- URLs shared as text
-- Text content from various apps
-
-Future versions may support:
-- Images
-- Files
-- Multiple items
-
-## Security Considerations
-
-- The app supports cleartext HTTP traffic for development (remove in production)
-- Configure your endpoint to use HTTPS in production
-- Implement authentication on your endpoint if needed
-- The app stores configuration in SharedPreferences (unencrypted)
-
-## Example Server Implementation
-
-Here's a simple Node.js/Express example:
-
-```javascript
-const express = require('express');
-const app = express();
-
-app.use(express.json());
-
-// Configuration endpoint
-app.get('/api/config', (req, res) => {
-  res.json({
-    name: "My Share List",
-    icon: "https://example.com/icon.png",
-    endpoint: "https://example.com/api/share"
-  });
-});
-
-// Share endpoint
-app.post('/api/share', (req, res) => {
-  const { content, type, timestamp } = req.body;
-  console.log('Received share:', content);
-  
-  // Save to database, send notification, etc.
-  
-  res.json({ success: true });
-});
-
-app.listen(3000);
-```
-
-## Troubleshooting
-
-**"Please configure the app first"**: Open the app and set up your API endpoint.
-
-**"Setup failed"**: Check that your API endpoint is accessible and returns valid JSON.
-
-**"Share failed"**: Verify your POST endpoint is working and accepts JSON.
-
-**Icon not displaying**: Check the icon URL is accessible and is a valid image format.
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+MIT - see [LICENSE](LICENSE)

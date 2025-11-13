@@ -3,6 +3,7 @@ package me.talofa.app
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -100,6 +101,93 @@ class ApiClient {
                     ShareResult.Success
                 } else {
                     ShareResult.Error("HTTP ${response.code}: ${response.message}")
+                }
+            }
+        } catch (e: IOException) {
+            ShareResult.Error("Network error: ${e.message}")
+        } catch (e: Exception) {
+            ShareResult.Error("Error: ${e.message}")
+        }
+    }
+
+    /**
+     * Post image content using multipart form data
+     */
+    suspend fun postImageContent(
+        endpoint: String,
+        imageBytes: ByteArray,
+        fileName: String,
+        mimeType: String,
+        text: String? = null,
+        title: String? = null,
+        subject: String? = null,
+        deliveryKey: String? = null
+    ): ShareResult = withContext(Dispatchers.IO) {
+        try {
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image",
+                    fileName,
+                    imageBytes.toRequestBody(mimeType.toMediaType())
+                )
+            
+            // Add text fields if present
+            if (!text.isNullOrEmpty()) {
+                requestBody.addFormDataPart("text", text)
+            }
+            if (!title.isNullOrEmpty()) {
+                requestBody.addFormDataPart("title", title)
+            }
+            if (!subject.isNullOrEmpty()) {
+                requestBody.addFormDataPart("subject", subject)
+            }
+            requestBody.addFormDataPart("type", "image")
+            requestBody.addFormDataPart("timestamp", System.currentTimeMillis().toString())
+            
+            val requestBuilder = Request.Builder()
+                .url(endpoint)
+                .header("User-Agent", USER_AGENT)
+
+            if (!deliveryKey.isNullOrEmpty()) {
+                requestBuilder.header("X-Delivery-Key", deliveryKey)
+            }
+
+            val request = requestBuilder.post(requestBody.build()).build()
+
+            client.newCall(request).execute().use { response ->
+                when (response.code) {
+                    200 -> ShareResult.Success
+                    202 -> {
+                        // Server requests group selection
+                        val body = response.body?.string() ?: "{}"
+                        val responseJson = JSONObject(body)
+                        val shareId = responseJson.optString("share_id", "")
+                        val groupsArray = responseJson.optJSONArray("groups")
+                        
+                        if (shareId.isEmpty()) {
+                            return@withContext ShareResult.Error("No share_id provided")
+                        }
+                        
+                        if (groupsArray != null && groupsArray.length() > 0) {
+                            val groups = mutableListOf<Group>()
+                            for (i in 0 until groupsArray.length()) {
+                                val groupJson = groupsArray.getJSONObject(i)
+                                groups.add(
+                                    Group(
+                                        id = groupJson.getString("id"),
+                                        name = groupJson.getString("name"),
+                                        icon = groupJson.optString("icon").takeIf { it.isNotEmpty() },
+                                        description = groupJson.optString("description").takeIf { it.isNotEmpty() }
+                                    )
+                                )
+                            }
+                            ShareResult.GroupSelectionRequired(shareId, groups)
+                        } else {
+                            ShareResult.Error("No groups provided")
+                        }
+                    }
+                    else -> ShareResult.Error("HTTP ${response.code}: ${response.message}")
                 }
             }
         } catch (e: IOException) {

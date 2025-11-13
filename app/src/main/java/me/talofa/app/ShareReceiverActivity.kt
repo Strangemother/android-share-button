@@ -1,11 +1,13 @@
 package me.talofa.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import java.io.InputStream
 
 /**
  * Activity that handles incoming share intents
@@ -31,11 +33,17 @@ class ShareReceiverActivity : AppCompatActivity() {
     private fun handleShareIntent() {
         when (intent?.action) {
             Intent.ACTION_SEND -> {
-                if (intent.type == "text/plain" || intent.type?.startsWith("text/") == true) {
-                    handleTextShare()
-                } else {
-                    Toast.makeText(this, "Unsupported content type", Toast.LENGTH_SHORT).show()
-                    finish()
+                when {
+                    intent.type == "text/plain" || intent.type?.startsWith("text/") == true -> {
+                        handleTextShare()
+                    }
+                    intent.type?.startsWith("image/") == true -> {
+                        handleImageShare()
+                    }
+                    else -> {
+                        Toast.makeText(this, "Unsupported content type", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
                 }
             }
             else -> {
@@ -60,6 +68,23 @@ class ShareReceiverActivity : AppCompatActivity() {
         postContent(sharedText, sharedTitle, sharedSubject)
     }
     
+    private fun handleImageShare() {
+        val imageUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+        val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+        val sharedTitle = intent.getStringExtra(Intent.EXTRA_TITLE)
+        val sharedSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+
+        if (imageUri == null) {
+            Toast.makeText(this, "No image to share", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        Toast.makeText(this, R.string.sharing, Toast.LENGTH_SHORT).show()
+
+        postImageContent(imageUri, sharedText, sharedTitle, sharedSubject)
+    }
+    
     private fun postContent(
         text: String,
         title: String?,
@@ -80,6 +105,86 @@ class ShareReceiverActivity : AppCompatActivity() {
             
             when (val result = apiClient.postSharedContent(
                 endpoint = endpoint,
+                text = text,
+                title = title,
+                subject = subject,
+                deliveryKey = deliveryKey
+            )) {
+                is ApiClient.ShareResult.Success -> {
+                    Toast.makeText(
+                        this@ShareReceiverActivity,
+                        R.string.share_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    finish()
+                }
+                is ApiClient.ShareResult.GroupSelectionRequired -> {
+                    // Show bottom sheet for group selection
+                    showGroupSelectionBottomSheet(result.shareId, result.groups)
+                }
+                is ApiClient.ShareResult.Error -> {
+                    Toast.makeText(
+                        this@ShareReceiverActivity,
+                        getString(R.string.share_error, result.message),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                }
+            }
+        }
+    }
+    
+    private fun postImageContent(
+        imageUri: Uri,
+        text: String?,
+        title: String?,
+        subject: String?
+    ) {
+        lifecycleScope.launch {
+            val endpoint = configManager.postEndpoint ?: run {
+                Toast.makeText(
+                    this@ShareReceiverActivity,
+                    "No endpoint configured",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+                return@launch
+            }
+
+            val deliveryKey = configManager.deliveryKey
+            
+            // Read image data
+            val inputStream: InputStream? = try {
+                contentResolver.openInputStream(imageUri)
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@ShareReceiverActivity,
+                    "Failed to read image: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+                finish()
+                return@launch
+            }
+            
+            if (inputStream == null) {
+                Toast.makeText(
+                    this@ShareReceiverActivity,
+                    "Failed to read image",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+                return@launch
+            }
+            
+            val imageBytes = inputStream.use { it.readBytes() }
+            val mimeType = contentResolver.getType(imageUri) ?: "image/jpeg"
+            val fileName = "image.${mimeType.substringAfter("/")}"
+            
+            when (val result = apiClient.postImageContent(
+                endpoint = endpoint,
+                imageBytes = imageBytes,
+                fileName = fileName,
+                mimeType = mimeType,
                 text = text,
                 title = title,
                 subject = subject,
