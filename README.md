@@ -2,7 +2,7 @@
 
 > Note to self: "Hello Me" 💚 
 
-My personal link stash for Android (currently) and the web. Save links and images from anywhere, store them my way. https://talofa.me 
+Personal link stash tool for Android (currently). Save links and images from anywhere, store them your way. https://talofa.me 
 
 ## What is this?
 
