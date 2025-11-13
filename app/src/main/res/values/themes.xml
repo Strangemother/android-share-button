@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.ShareButton" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Talofa" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/green_500</item>
         <item name="colorPrimaryVariant">@color/green_700</item>
@@ -15,7 +15,7 @@
     </style>
 
     <!-- Transparent theme for share receiver -->
-    <style name="Theme.ShareButton.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.Talofa.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ShareButton"
+rootProject.name = "talofa.me"
 include(":app")

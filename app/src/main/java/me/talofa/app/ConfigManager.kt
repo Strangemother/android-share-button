@@ -1,4 +1,4 @@
-package com.sharebutton.app
+package me.talofa.app
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -15,6 +15,8 @@ class ConfigManager(context: Context) {
         private const val KEY_SHARE_NAME = "share_name"
         private const val KEY_ICON_URL = "icon_url"
         private const val KEY_POST_ENDPOINT = "post_endpoint"
+        private const val KEY_API_KEY = "api_key"
+        private const val KEY_DELIVERY_KEY = "delivery_key"
     }
 
     var apiUrl: String?
@@ -32,6 +34,14 @@ class ConfigManager(context: Context) {
     var postEndpoint: String?
         get() = prefs.getString(KEY_POST_ENDPOINT, null)
         set(value) = prefs.edit().putString(KEY_POST_ENDPOINT, value).apply()
+
+    var apiKey: String?
+        get() = prefs.getString(KEY_API_KEY, null)
+        set(value) = prefs.edit().putString(KEY_API_KEY, value).apply()
+
+    var deliveryKey: String?
+        get() = prefs.getString(KEY_DELIVERY_KEY, null)
+        set(value) = prefs.edit().putString(KEY_DELIVERY_KEY, value).apply()
 
     fun isConfigured(): Boolean {
         return !postEndpoint.isNullOrEmpty()

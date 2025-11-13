@@ -1,4 +1,4 @@
-package com.sharebutton.app
+package me.talofa.app
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.sharebutton.app.databinding.ActivityMainBinding
+import me.talofa.app.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,13 +32,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.learnMoreTextView.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://talofa.me"))
+            startActivity(intent)
+        }
+
         binding.setupButton.setOnClickListener {
             val apiUrl = binding.apiEndpointEditText.text?.toString()?.trim()
             if (apiUrl.isNullOrEmpty()) {
                 Toast.makeText(this, R.string.enter_url, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            setupConfiguration(apiUrl)
+            val apiKey = binding.apiKeyEditText.text?.toString()?.trim()
+            setupConfiguration(apiUrl, apiKey)
         }
 
         binding.testButton.setOnClickListener {
@@ -48,25 +54,31 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadConfiguration() {
         if (configManager.isConfigured()) {
-            // Load the saved API URL into the text field
+            // Load the saved API URL and API key into the text fields
             val savedApiUrl = configManager.apiUrl
             if (!savedApiUrl.isNullOrEmpty()) {
                 binding.apiEndpointEditText.setText(savedApiUrl)
+            }
+            val savedApiKey = configManager.apiKey
+            if (!savedApiKey.isNullOrEmpty()) {
+                binding.apiKeyEditText.setText(savedApiKey)
             }
             displayConfiguration()
         }
     }
 
-    private fun setupConfiguration(apiUrl: String) {
+    private fun setupConfiguration(apiUrl: String, apiKey: String?) {
         binding.setupButton.isEnabled = false
         lifecycleScope.launch {
             try {
-                when (val result = apiClient.fetchConfiguration(apiUrl)) {
+                when (val result = apiClient.fetchConfiguration(apiUrl, apiKey)) {
                     is ApiClient.ConfigResult.Success -> {
                         configManager.apiUrl = apiUrl
+                        configManager.apiKey = apiKey
                         configManager.shareName = result.name
                         configManager.iconUrl = result.icon
                         configManager.postEndpoint = result.endpoint
+                        configManager.deliveryKey = result.deliveryKey
 
                         Toast.makeText(
                             this@MainActivity,

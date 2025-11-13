@@ -4,18 +4,18 @@ plugins {
 }
 
 android {
-    namespace = "com.sharebutton.app"
+    namespace = "me.talofa.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sharebutton.app"
+        applicationId = "me.talofa.app"
         minSdk = 24  // Android 7.0+
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
         
         // Better app metadata
-        setProperty("archivesBaseName", "share-button-v$versionName")
+        setProperty("archivesBaseName", "talofa-v$versionName")
     }
 
     buildTypes {

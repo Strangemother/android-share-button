@@ -1,4 +1,4 @@
-package com.sharebutton.app
+package me.talofa.app
 
 import android.content.Intent
 import android.os.Bundle
@@ -55,17 +55,6 @@ class ShareReceiverActivity : AppCompatActivity() {
             return
         }
 
-        // Build content with available information
-        val content = buildString {
-            if (!sharedTitle.isNullOrEmpty()) {
-                append("Title: $sharedTitle\n")
-            }
-            if (!sharedSubject.isNullOrEmpty()) {
-                append("Subject: $sharedSubject\n")
-            }
-            append(sharedText)
-        }
-
         Toast.makeText(this, R.string.sharing, Toast.LENGTH_SHORT).show()
 
         lifecycleScope.launch {
@@ -79,7 +68,15 @@ class ShareReceiverActivity : AppCompatActivity() {
                 return@launch
             }
 
-            when (val result = apiClient.postSharedContent(endpoint, content)) {
+            val deliveryKey = configManager.deliveryKey
+            
+            when (val result = apiClient.postSharedContent(
+                endpoint = endpoint,
+                text = sharedText,
+                title = sharedTitle,
+                subject = sharedSubject,
+                deliveryKey = deliveryKey
+            )) {
                 is ApiClient.ShareResult.Success -> {
                     Toast.makeText(
                         this@ShareReceiverActivity,
