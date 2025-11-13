@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -11,8 +12,8 @@ android {
         applicationId = "me.talofa.app"
         minSdk = 24  // Android 7.0+
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
         
         // Better app metadata
         setProperty("archivesBaseName", "talofa-v$versionName")

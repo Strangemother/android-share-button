@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  */
 class ApiClient {
     companion object {
-        private const val APP_VERSION = "1.0.0"
+        private const val APP_VERSION = "1.0.1"
         private const val USER_AGENT = "talofa.me/$APP_VERSION (Android)"
     }
     
@@ -68,6 +68,48 @@ class ApiClient {
     }
 
     /**
+     * Post group selection for an existing share
+     */
+    suspend fun postGroupSelection(
+        endpoint: String,
+        shareId: String,
+        groupId: String,
+        deliveryKey: String? = null
+    ): ShareResult = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("share_id", shareId)
+                put("group_id", groupId)
+            }
+
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val requestBody = json.toString().toRequestBody(mediaType)
+
+            val requestBuilder = Request.Builder()
+                .url(endpoint)
+                .header("User-Agent", USER_AGENT)
+
+            if (!deliveryKey.isNullOrEmpty()) {
+                requestBuilder.header("X-Delivery-Key", deliveryKey)
+            }
+
+            val request = requestBuilder.post(requestBody).build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    ShareResult.Success
+                } else {
+                    ShareResult.Error("HTTP ${response.code}: ${response.message}")
+                }
+            }
+        } catch (e: IOException) {
+            ShareResult.Error("Network error: ${e.message}")
+        } catch (e: Exception) {
+            ShareResult.Error("Error: ${e.message}")
+        }
+    }
+
+    /**
      * Post shared content to the endpoint
      */
     suspend fun postSharedContent(
@@ -105,11 +147,39 @@ class ApiClient {
             val request = requestBuilder.post(requestBody).build()
 
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    return@withContext ShareResult.Error("HTTP ${response.code}: ${response.message}")
+                when (response.code) {
+                    200 -> ShareResult.Success
+                    202 -> {
+                        // Server requests group selection
+                        val body = response.body?.string() ?: "{}"
+                        val responseJson = JSONObject(body)
+                        val shareId = responseJson.optString("share_id", "")
+                        val groupsArray = responseJson.optJSONArray("groups")
+                        
+                        if (shareId.isEmpty()) {
+                            return@withContext ShareResult.Error("No share_id provided")
+                        }
+                        
+                        if (groupsArray != null && groupsArray.length() > 0) {
+                            val groups = mutableListOf<Group>()
+                            for (i in 0 until groupsArray.length()) {
+                                val groupJson = groupsArray.getJSONObject(i)
+                                groups.add(
+                                    Group(
+                                        id = groupJson.getString("id"),
+                                        name = groupJson.getString("name"),
+                                        icon = groupJson.optString("icon").takeIf { it.isNotEmpty() },
+                                        description = groupJson.optString("description").takeIf { it.isNotEmpty() }
+                                    )
+                                )
+                            }
+                            ShareResult.GroupSelectionRequired(shareId, groups)
+                        } else {
+                            ShareResult.Error("No groups provided")
+                        }
+                    }
+                    else -> ShareResult.Error("HTTP ${response.code}: ${response.message}")
                 }
-
-                ShareResult.Success
             }
         } catch (e: IOException) {
             ShareResult.Error("Network error: ${e.message}")
@@ -130,6 +200,7 @@ class ApiClient {
 
     sealed class ShareResult {
         object Success : ShareResult()
+        data class GroupSelectionRequired(val shareId: String, val groups: List<Group>) : ShareResult()
         data class Error(val message: String) : ShareResult()
     }
 }
