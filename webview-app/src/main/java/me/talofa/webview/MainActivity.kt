@@ -98,6 +98,7 @@ class MainActivity : ComponentActivity() {
     
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        setIntent(intent)
         intent?.let { handleDeepLink(it) }
     }
     
@@ -139,8 +140,10 @@ class MainActivity : ComponentActivity() {
                         ).show()
                     }
                     
-                    // Reload the WebView with new URL
-                    webView.loadUrl(url)
+                    // Reload the WebView with new URL if it's initialized
+                    if (::webView.isInitialized) {
+                        webView.loadUrl(url)
+                    }
                 }
             }
         }

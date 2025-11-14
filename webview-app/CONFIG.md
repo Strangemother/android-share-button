@@ -51,6 +51,9 @@ After modifying `app.properties`:
 2. The new scheme will be: `<your-scheme>://setup?url=<website>`
 3. Generate new QR codes with the updated scheme
 
+    tolafoTolafo://setup?url=https://polypointjs.com&scheme=polypointWebview
+    talofaTalofa://setup?url=https://polypointjs.com&scheme=polypointWebview
+    
 ## Technical Details
 
 The build configuration reads `app.properties` and:
