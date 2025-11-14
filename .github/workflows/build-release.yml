@@ -33,8 +33,9 @@ jobs:
       - name: Get version name
         id: version
         run: |
-          VERSION=$(grep 'versionName' app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=$(grep 'versionName' app/build.gradle.kts | grep -oP '"\K[^"]+')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Found version: ${VERSION}"
       
       - name: Rename APKs
         run: |
