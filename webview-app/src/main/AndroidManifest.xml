@@ -31,8 +31,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 
-                <!-- Support webview:// scheme -->
+                <!-- Support multiple schemes -->
                 <data android:scheme="webview" android:host="setup" />
+                <data android:scheme="wv7f2a9c" android:host="setup" />
             </intent-filter>
         </activity>
     </application>

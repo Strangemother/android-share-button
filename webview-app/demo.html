@@ -94,6 +94,7 @@
             <h2>Device & App Info</h2>
             <button onclick="getDeviceInfo()">Get Device Info</button>
             <button onclick="getSiteUrl()">Get Configured URL</button>
+            <button onclick="getConfig()">Get Full Config</button>
         </div>
 
         <div class="info" id="info">
@@ -171,16 +172,37 @@ console.log(JSON.parse(info));
         function getSiteUrl() {
             if (isAndroid) {
                 const url = Android.getSiteUrl();
+                const scheme = Android.getScheme();
                 document.getElementById('info').innerHTML = `
                     <strong>🌐 Configured Site URL:</strong>
                     <pre>${url}</pre>
                     <br>
-                    <strong>💡 To change:</strong><br>
-                    Scan QR code with format:<br>
-                    <code>webview://setup?url=YOUR_URL</code>
+                    <strong>🔗 Custom Scheme:</strong>
+                    <pre>${scheme}://</pre>
+                    <br>
+                    <strong>💡 To reconfigure:</strong><br>
+                    <code>${scheme}://setup?url=NEW_URL</code>
                 `;
             } else {
                 alert('Site URL only available in Android app');
+            }
+        }
+
+        function getConfig() {
+            if (isAndroid) {
+                const config = JSON.parse(Android.getConfig());
+                document.getElementById('info').innerHTML = `
+                    <strong>⚙️ Full Configuration:</strong>
+                    <pre>${JSON.stringify(config, null, 2)}</pre>
+                    <br>
+                    <strong>💡 Setup QR code format:</strong><br>
+                    <code>${config.deepLink}?url=YOUR_URL</code><br>
+                    <br>
+                    Or set custom scheme:<br>
+                    <code>${config.deepLink}?url=YOUR_URL&scheme=myapp123</code>
+                `;
+            } else {
+                alert('Config only available in Android app');
             }
         }
 

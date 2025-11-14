@@ -24,7 +24,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val PREFS_NAME = "webview_settings"
         private const val KEY_SITE_URL = "site_url"
+        private const val KEY_CUSTOM_SCHEME = "custom_scheme"
         private const val DEFAULT_URL = "https://talofa.me"
+        private const val DEFAULT_SCHEME = "wv7f2a9c"  // Unique 8-char identifier
     }
     
     @SuppressLint("SetJavaScriptEnabled")
@@ -108,23 +110,36 @@ class MainActivity : ComponentActivity() {
     
     /**
      * Handle deep link configuration
-     * Format: webview://setup?url=https://your-site.com
+     * Formats:
+     *   webview://setup?url=https://your-site.com
+     *   webview://setup?url=https://your-site.com&scheme=myapp123
+     *   [custom-scheme]://setup?url=https://your-site.com
      */
     private fun handleDeepLink(intent: Intent) {
         if (intent.action == Intent.ACTION_VIEW) {
             intent.data?.let { uri ->
                 val url = uri.getQueryParameter("url")
+                val customScheme = uri.getQueryParameter("scheme")
                 
                 if (!url.isNullOrEmpty()) {
                     // Save the URL
                     prefs.edit().putString(KEY_SITE_URL, url).apply()
                     
-                    // Show confirmation
-                    Toast.makeText(
-                        this,
-                        "Site URL configured: $url",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    // Save custom scheme if provided
+                    if (!customScheme.isNullOrEmpty() && customScheme.matches(Regex("^[a-z0-9]{4,16}$"))) {
+                        prefs.edit().putString(KEY_CUSTOM_SCHEME, customScheme).apply()
+                        Toast.makeText(
+                            this,
+                            "Configured!\nURL: $url\nNew scheme: $customScheme://",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Site URL configured: $url",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     
                     // Reload the WebView with new URL
                     webView.loadUrl(url)
@@ -224,6 +239,31 @@ class MainActivity : ComponentActivity() {
         fun getSiteUrl(): String {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             return prefs.getString(KEY_SITE_URL, DEFAULT_URL) ?: DEFAULT_URL
+        }
+        
+        /**
+         * Get current custom scheme
+         * JavaScript: const scheme = Android.getScheme()
+         */
+        @JavascriptInterface
+        fun getScheme(): String {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getString(KEY_CUSTOM_SCHEME, DEFAULT_SCHEME) ?: DEFAULT_SCHEME
+        }
+        
+        /**
+         * Get app configuration as JSON
+         * JavaScript: const config = JSON.parse(Android.getConfig())
+         */
+        @JavascriptInterface
+        fun getConfig(): String {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val config = JSONObject().apply {
+                put("siteUrl", prefs.getString(KEY_SITE_URL, DEFAULT_URL))
+                put("scheme", prefs.getString(KEY_CUSTOM_SCHEME, DEFAULT_SCHEME))
+                put("deepLink", "${prefs.getString(KEY_CUSTOM_SCHEME, DEFAULT_SCHEME)}://setup")
+            }
+            return config.toString()
         }
     }
 }
