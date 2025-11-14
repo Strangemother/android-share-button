@@ -1,0 +1,82 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.2, v1.0.3, etc.
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon
+      
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon
+      
+      - name: Get version name
+        id: version
+        run: |
+          VERSION=$(grep 'versionName' app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Rename APKs
+        run: |
+          mkdir -p release-artifacts
+          cp app/build/outputs/apk/debug/*.apk release-artifacts/talofa-${{ steps.version.outputs.version }}-debug.apk || true
+          cp app/build/outputs/apk/release/*.apk release-artifacts/talofa-${{ steps.version.outputs.version }}-release.apk || true
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            release-artifacts/*.apk
+          body: |
+            ## talofa.me v${{ steps.version.outputs.version }}
+            
+            ### Installation
+            1. Download the APK file below
+            2. Enable "Install from unknown sources" on your Android device
+            3. Install the APK
+            
+            ### APK Files
+            - **Debug APK**: For testing and development
+            - **Release APK**: Optimized for production use (unsigned)
+            
+            ### What's New
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload Debug APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: talofa-debug-apk
+          path: release-artifacts/*-debug.apk
+          retention-days: 30
+      
+      - name: Upload Release APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: talofa-release-apk
+          path: release-artifacts/*-release.apk
+          retention-days: 90
