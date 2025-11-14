@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "talofa.me"
 include(":app")
+include(":webview-app")

@@ -27,24 +27,31 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
-      - name: Build Debug APK
+      - name: Build Debug APKs (both apps)
         run: ./gradlew assembleDebug --no-daemon
       
-      - name: Build Release APK
+      - name: Build Release APKs (both apps)
         run: ./gradlew assembleRelease --no-daemon
       
-      - name: Get version name
+      - name: Get version names
         id: version
         run: |
           VERSION=$(grep 'versionName = ' app/build.gradle.kts | grep -oP '"\K[^"]+' | head -1)
+          WEBVIEW_VERSION=$(grep 'versionName = ' webview-app/build.gradle.kts | grep -oP '"\K[^"]+' | head -1)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Found version: ${VERSION}"
+          echo "webview_version=${WEBVIEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "Found talofa.me version: ${VERSION}"
+          echo "Found webview version: ${WEBVIEW_VERSION}"
       
       - name: Rename APKs
         run: |
           mkdir -p release-artifacts
+          # Main app APKs
           cp app/build/outputs/apk/debug/*.apk release-artifacts/talofa-${{ steps.version.outputs.version }}-debug.apk || true
           cp app/build/outputs/apk/release/*.apk release-artifacts/talofa-${{ steps.version.outputs.version }}-release.apk || true
+          # WebView app APKs
+          cp webview-app/build/outputs/apk/debug/*.apk release-artifacts/talofa-webview-${{ steps.version.outputs.webview_version }}-debug.apk || true
+          cp webview-app/build/outputs/apk/release/*.apk release-artifacts/talofa-webview-${{ steps.version.outputs.webview_version }}-release.apk || true
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -62,17 +69,26 @@ jobs:
             
             ### 📦 APK Files
             
-            **🔧 Debug APK** (Recommended for most users)
+            #### Main App (Share Button)
+            **🔧 Debug APK** (Recommended)
             - `talofa-${{ steps.version.outputs.version }}-debug.apk`
-            - Includes debug symbols for better error reporting
-            - Works on all devices without signing issues
-            - **Use this for personal use, testing, and development**
+            - Full share button app with configuration, QR code setup, and API integration
+            - **Use this for personal use and testing**
             
             **⚡ Release APK** (Advanced users)
             - `talofa-${{ steps.version.outputs.version }}-release.apk`
-            - Optimized and minified code
-            - Unsigned - requires signing for production
-            - Smaller file size
+            - Optimized version (unsigned)
+            
+            #### WebView App
+            **🌐 WebView Debug APK** (Recommended)
+            - `talofa-webview-${{ steps.version.outputs.webview_version }}-debug.apk`
+            - Full-screen WebView wrapper for HTML canvas apps
+            - JavaScript hooks to native Android (vibration, toasts, device info)
+            - **Use this for HTML canvas or web-based apps**
+            
+            **⚡ WebView Release APK** (Advanced users)
+            - `talofa-webview-${{ steps.version.outputs.webview_version }}-release.apk`
+            - Optimized version (unsigned)
             
             ### What's New
             See [CHANGELOG.md](CHANGELOG.md) for details.
@@ -81,16 +97,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Upload Debug APK as Artifact
+      - name: Upload Debug APKs as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: talofa-debug-apk
+          name: talofa-debug-apks
           path: release-artifacts/*-debug.apk
           retention-days: 30
       
-      - name: Upload Release APK as Artifact
+      - name: Upload Release APKs as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: talofa-release-apk
+          name: talofa-release-apks
           path: release-artifacts/*-release.apk
           retention-days: 90

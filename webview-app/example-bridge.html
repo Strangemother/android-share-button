@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebView JavaScript Bridge Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 15px 30px;
+            margin: 10px 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #6200EE;
+            color: white;
+        }
+        button:active {
+            background: #3700B3;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        h1 { color: #6200EE; }
+    </style>
+</head>
+<body>
+    <h1>WebView JS Bridge Demo</h1>
+    
+    <div class="info">
+        <p>This page demonstrates JavaScript ↔ Android communication</p>
+    </div>
+
+    <h2>Direct Method Calls</h2>
+    <button onclick="vibrateShort()">Vibrate Short (100ms)</button>
+    <button onclick="vibrateLong()">Vibrate Long (500ms)</button>
+    <button onclick="showToast()">Show Toast</button>
+    <button onclick="showDeviceInfo()">Device Info</button>
+
+    <h2>Using postMessage</h2>
+    <button onclick="vibrateViaMessage(0.2)">Vibrate 20%</button>
+    <button onclick="vibrateViaMessage(0.5)">Vibrate 50%</button>
+    <button onclick="vibrateViaMessage(1.0)">Vibrate 100%</button>
+
+    <div id="output" class="info" style="display:none;">
+        <h3>Output:</h3>
+        <pre id="output-text"></pre>
+    </div>
+
+    <script>
+        // Check if Android interface is available
+        if (typeof Android !== 'undefined') {
+            console.log('✅ Android interface is available!');
+        } else {
+            console.warn('⚠️ Android interface not found. Running in browser?');
+            // Create mock for browser testing
+            window.Android = {
+                vibrate: (s) => console.log(`[Mock] Vibrate: ${s}`),
+                toast: (m) => console.log(`[Mock] Toast: ${m}`),
+                postMessage: (j) => console.log(`[Mock] Message: ${j}`),
+                getDeviceInfo: () => JSON.stringify({ browser: true })
+            };
+        }
+
+        // Direct method calls
+        function vibrateShort() {
+            Android.vibrate(100); // 100 milliseconds
+        }
+
+        function vibrateLong() {
+            Android.vibrate(500); // 500 milliseconds
+        }
+
+        function showToast() {
+            Android.toast('Hello from JavaScript! 👋');
+        }
+
+        function showDeviceInfo() {
+            const info = Android.getDeviceInfo();
+            document.getElementById('output').style.display = 'block';
+            document.getElementById('output-text').textContent = 
+                JSON.stringify(JSON.parse(info), null, 2);
+            Android.toast('Device info displayed below');
+        }
+
+        // Using postMessage pattern
+        function vibrateViaMessage(strength) {
+            const message = {
+                event: 'vibrate',
+                strength: strength
+            };
+            Android.postMessage(JSON.stringify(message));
+        }
+
+        // Example: Canvas interaction trigger
+        function onCanvasInteraction() {
+            // Trigger haptic feedback on canvas touch
+            Android.vibrate(0.1); // 10% strength (50ms)
+        }
+
+        // Example: Custom event handlers
+        function sendCustomEvent(eventName, data) {
+            const message = {
+                event: eventName,
+                data: data,
+                timestamp: Date.now()
+            };
+            Android.postMessage(JSON.stringify(message));
+        }
+
+        // Ready indicator
+        document.addEventListener('DOMContentLoaded', () => {
+            Android.toast('WebView bridge ready! 🚀');
+        });
+    </script>
+</body>
+</html>

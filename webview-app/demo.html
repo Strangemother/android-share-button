@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebView JavaScript Interface Demo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { margin-bottom: 10px; }
+        p { margin-bottom: 30px; opacity: 0.9; }
+        .button-group {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .info pre {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 WebView Demo</h1>
+        <p>Test JavaScript to Android native calls</p>
+
+        <div class="button-group">
+            <h2>Vibration</h2>
+            <button onclick="vibrate(0.2)">Light Vibrate (0.2)</button>
+            <button onclick="vibrate(0.5)">Medium Vibrate (0.5)</button>
+            <button onclick="vibrate(1.0)">Strong Vibrate (1.0)</button>
+            <button onclick="vibrate(200)">Custom 200ms</button>
+        </div>
+
+        <div class="button-group">
+            <h2>Toast Messages</h2>
+            <button onclick="showToast('Hello from JavaScript!')">Show Toast</button>
+            <button onclick="showToast('Canvas app ready! 🎨')">Canvas Message</button>
+        </div>
+
+        <div class="button-group">
+            <h2>JSON Events (postMessage)</h2>
+            <button onclick="sendEvent('vibrate', 0.3)">Send Vibrate Event</button>
+            <button onclick="sendEvent('toast', 'Event message!')">Send Toast Event</button>
+        </div>
+
+        <div class="button-group">
+            <h2>Device Info</h2>
+            <button onclick="getDeviceInfo()">Get Device Info</button>
+        </div>
+
+        <div class="info" id="info">
+            <strong>ℹ️ How to use in your app:</strong>
+            <pre>// Direct calls
+Android.vibrate(0.5);
+Android.toast("Hello!");
+
+// JSON events
+Android.postMessage(JSON.stringify({
+    event: 'vibrate',
+    strength: 0.5
+}));
+
+// Get info
+const info = Android.getDeviceInfo();
+console.log(JSON.parse(info));</pre>
+        </div>
+    </div>
+
+    <script>
+        // Check if Android interface is available
+        const isAndroid = typeof Android !== 'undefined';
+        
+        if (!isAndroid) {
+            document.getElementById('info').innerHTML = 
+                '<strong>⚠️ Not running in Android WebView</strong><br>' +
+                'This demo requires the Android app to work.';
+        }
+
+        function vibrate(strength) {
+            if (isAndroid) {
+                Android.vibrate(strength);
+            } else {
+                console.log('Would vibrate:', strength);
+            }
+        }
+
+        function showToast(message) {
+            if (isAndroid) {
+                Android.toast(message);
+            } else {
+                alert(message);
+            }
+        }
+
+        function sendEvent(event, data) {
+            if (isAndroid) {
+                const payload = event === 'vibrate' 
+                    ? { event: 'vibrate', strength: data }
+                    : { event: 'toast', message: data };
+                
+                Android.postMessage(JSON.stringify(payload));
+            } else {
+                console.log('Would send event:', event, data);
+            }
+        }
+
+        function getDeviceInfo() {
+            if (isAndroid) {
+                const info = JSON.parse(Android.getDeviceInfo());
+                document.getElementById('info').innerHTML = `
+                    <strong>📱 Device Info:</strong>
+                    <pre>${JSON.stringify(info, null, 2)}</pre>
+                `;
+            } else {
+                alert('Device info only available in Android app');
+            }
+        }
+
+        // Welcome message on load
+        if (isAndroid) {
+            setTimeout(() => {
+                Android.toast('WebView demo loaded! 🚀');
+            }, 500);
+        }
+    </script>
+</body>
+</html>
