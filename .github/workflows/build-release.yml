@@ -57,9 +57,19 @@ jobs:
             2. Enable "Install from unknown sources" on your Android device
             3. Install the APK
             
-            ### APK Files
-            - **Debug APK**: For testing and development
-            - **Release APK**: Optimized for production use (unsigned)
+            ### 📦 APK Files
+            
+            **🔧 Debug APK** (Recommended for most users)
+            - `talofa-${{ steps.version.outputs.version }}-debug.apk`
+            - Includes debug symbols for better error reporting
+            - Works on all devices without signing issues
+            - **Use this for personal use, testing, and development**
+            
+            **⚡ Release APK** (Advanced users)
+            - `talofa-${{ steps.version.outputs.version }}-release.apk`
+            - Optimized and minified code
+            - Unsigned - requires signing for production
+            - Smaller file size
             
             ### What's New
             See [CHANGELOG.md](CHANGELOG.md) for details.
