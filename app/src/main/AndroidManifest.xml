@@ -21,10 +21,32 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Talofa">
+            android:theme="@style/Theme.Talofa"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
+            <!-- Deep link for QR code setup -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <!-- Support talofa:// scheme -->
+                <data android:scheme="talofa" android:host="setup" />
+            </intent-filter>
+            
+            <!-- Support https://talofa.me deep links -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <data android:scheme="https" 
+                      android:host="talofa.me" 
+                      android:pathPrefix="/setup" />
             </intent-filter>
         </activity>
 

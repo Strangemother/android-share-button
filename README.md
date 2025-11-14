@@ -28,6 +28,8 @@ talofa.me is a lightweight Android app that lets you capture and store links, sc
 - **Self-Hosted**: Point it at your server, no middleman
 - **API-First**: Build automation, CICD triggers, markdown generators, whatever you want
 - **HTTP Support**: Perfect for local development and self-hosted setups
+- **QR Code Setup**: 📱 Scan a QR code to instantly configure the app
+- **Smart Protocol Detection**: Enter URLs without `https://` - the app tries HTTPS first, then HTTP automatically
 
 ## 🚀 Quick Start
 
@@ -41,10 +43,20 @@ Or build it yourself - see [BUILDING.md](BUILDING.md)
 
 ### Configure
 
+**Option 1: Manual Setup**
 1. Open talofa.me
-2. Enter your server URL (e.g., `http://192.168.1.100:8000` or `https://talofa.me/api`)
+2. Enter your server URL (e.g., `192.168.1.100:8000` or `talofa.me/api/config`)
+   - Protocol is optional! Just enter the domain and the app will try HTTPS first, then HTTP
 3. Optionally add an API key
 4. Tap Setup ✅
+
+**Option 2: QR Code Setup** 📱
+1. Scan a setup QR code with your camera app
+2. Tap the notification to open talofa.me
+3. Setup runs automatically!
+
+Generate QR codes with format: `talofa://setup?url=YOUR_CONFIG_URL&key=OPTIONAL_KEY`
+See [QR Code Setup Guide](docs/QR_CODE_SETUP.md) for details.
 
 ### Use It
 
@@ -92,8 +104,37 @@ The goal: give you every way to push content into your personal space, your rule
 ## 📚 Documentation
 
 - [API Flow](docs/dev/API_FLOW.md) - How the app communicates with your server
+- [QR Code Setup](docs/QR_CODE_SETUP.md) - Configure the app by scanning QR codes
 - [Building](BUILDING.md) - Compile and customize the app
 - More docs coming as features develop
+
+## 🆕 What's New in v1.0.2
+
+### QR Code Setup 📱
+Scan a QR code to instantly configure the app! Perfect for:
+- Quick setup across multiple devices
+- Sharing your server setup with friends/team
+- Onboarding without manual URL entry
+
+Generate setup QR codes with format:
+```
+talofa://setup?url=https://your-server.com/api/config&key=your-api-key
+```
+
+See the [QR Code Setup Guide](docs/QR_CODE_SETUP.md) for examples, security tips, and server-side implementation.
+
+### Smart Protocol Detection 🔍
+No more typing `https://` or `http://` - just enter your domain:
+- Enter: `talofa.me/api/config`
+- App tries: `https://talofa.me/api/config` first
+- Falls back to: `http://talofa.me/api/config` if HTTPS fails
+- Saves whichever protocol worked
+
+Still want to force a specific protocol? Just include it explicitly:
+- `https://example.com` - uses HTTPS only
+- `http://192.168.1.100` - uses HTTP only
+
+Perfect for development and production workflows!
 
 ## 🤝 Contributing
 

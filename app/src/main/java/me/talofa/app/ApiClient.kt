@@ -16,20 +16,58 @@ import java.util.concurrent.TimeUnit
  */
 class ApiClient {
     companion object {
-        private const val APP_VERSION = "1.0.1"
+        private const val APP_VERSION = "1.0.2"
         private const val USER_AGENT = "talofa.me/$APP_VERSION (Android)"
+        
+        /**
+         * Normalize a URL by adding a protocol if missing
+         */
+        private fun normalizeUrl(url: String, protocol: String = "https"): String {
+            val trimmed = url.trim()
+            return when {
+                trimmed.startsWith("http://", ignoreCase = true) -> trimmed
+                trimmed.startsWith("https://", ignoreCase = true) -> trimmed
+                else -> "$protocol://$trimmed"
+            }
+        }
     }
     
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(20, TimeUnit.SECONDS)
         .build()
 
     /**
-     * Fetch configuration from the API endpoint
+     * Fetch configuration from the API endpoint.
+     * If no protocol is specified, tries HTTPS first, then HTTP.
      */
     suspend fun fetchConfiguration(apiUrl: String, apiKey: String? = null): ConfigResult = withContext(Dispatchers.IO) {
+        val hasProtocol = apiUrl.trim().startsWith("http://", ignoreCase = true) || 
+                         apiUrl.trim().startsWith("https://", ignoreCase = true)
+        
+        if (hasProtocol) {
+            // If protocol is explicitly provided, use it directly
+            return@withContext tryFetchConfiguration(apiUrl, apiKey)
+        } else {
+            // No protocol specified - try HTTPS first, then HTTP
+            val httpsUrl = normalizeUrl(apiUrl, "https")
+            val httpsResult = tryFetchConfiguration(httpsUrl, apiKey)
+            
+            if (httpsResult is ConfigResult.Success) {
+                return@withContext httpsResult
+            }
+            
+            // HTTPS failed, try HTTP
+            val httpUrl = normalizeUrl(apiUrl, "http")
+            return@withContext tryFetchConfiguration(httpUrl, apiKey)
+        }
+    }
+    
+    /**
+     * Attempt to fetch configuration from a specific URL
+     */
+    private suspend fun tryFetchConfiguration(apiUrl: String, apiKey: String?): ConfigResult = withContext(Dispatchers.IO) {
         try {
             val requestBuilder = Request.Builder()
                 .url(apiUrl)
@@ -58,7 +96,8 @@ class ApiClient {
                     name = name,
                     icon = icon,
                     endpoint = endpoint,
-                    deliveryKey = deliveryKey
+                    deliveryKey = deliveryKey,
+                    configUrl = apiUrl  // Return the URL that successfully worked
                 )
             }
         } catch (e: IOException) {
@@ -289,7 +328,8 @@ class ApiClient {
             val name: String,
             val icon: String,
             val endpoint: String,
-            val deliveryKey: String
+            val deliveryKey: String,
+            val configUrl: String  // The actual URL that worked (with protocol)
         ) : ConfigResult()
         data class Error(val message: String) : ConfigResult()
     }

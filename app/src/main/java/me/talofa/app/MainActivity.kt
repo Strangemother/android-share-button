@@ -29,6 +29,46 @@ class MainActivity : AppCompatActivity() {
 
         setupListeners()
         loadConfiguration()
+        handleDeepLink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleDeepLink(it) }
+    }
+
+    /**
+     * Handle deep link from QR code scan
+     * Supports formats:
+     * - talofa://setup?url=https://example.com/api/config&key=optional-api-key
+     * - https://talofa.me/setup?url=https://example.com/api/config&key=optional-api-key
+     */
+    private fun handleDeepLink(intent: Intent) {
+        if (intent.action == Intent.ACTION_VIEW) {
+            intent.data?.let { uri ->
+                // Extract URL parameter
+                val configUrl = uri.getQueryParameter("url")
+                val apiKey = uri.getQueryParameter("key")
+                
+                if (!configUrl.isNullOrEmpty()) {
+                    // Populate the fields
+                    binding.apiEndpointEditText.setText(configUrl)
+                    if (!apiKey.isNullOrEmpty()) {
+                        binding.apiKeyEditText.setText(apiKey)
+                    }
+                    
+                    // Show a toast to indicate deep link was received
+                    Toast.makeText(
+                        this,
+                        "Config URL loaded from QR code",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    
+                    // Auto-trigger setup
+                    setupConfiguration(configUrl, apiKey)
+                }
+            }
+        }
     }
 
     private fun setupListeners() {
@@ -73,7 +113,8 @@ class MainActivity : AppCompatActivity() {
             try {
                 when (val result = apiClient.fetchConfiguration(apiUrl, apiKey)) {
                     is ApiClient.ConfigResult.Success -> {
-                        configManager.apiUrl = apiUrl
+                        // Save the actual URL that worked (with protocol)
+                        configManager.apiUrl = result.configUrl
                         configManager.apiKey = apiKey
                         configManager.shareName = result.name
                         configManager.iconUrl = result.icon
