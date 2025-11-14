@@ -25,8 +25,6 @@ class MainActivity : ComponentActivity() {
         private const val PREFS_NAME = "webview_settings"
         private const val KEY_SITE_URL = "site_url"
         private const val KEY_CUSTOM_SCHEME = "custom_scheme"
-        private const val DEFAULT_URL = "https://talofa.me"
-        private const val DEFAULT_SCHEME = "wv7f2a9c"  // Unique 8-char identifier
     }
     
     @SuppressLint("SetJavaScriptEnabled")
@@ -39,7 +37,7 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
         
         // Get configured URL or use default
-        val siteUrl = prefs.getString(KEY_SITE_URL, DEFAULT_URL) ?: DEFAULT_URL
+        val siteUrl = prefs.getString(KEY_SITE_URL, BuildConfig.DEFAULT_URL) ?: BuildConfig.DEFAULT_URL
         
         webView = WebView(this).apply {
             settings.apply {
@@ -238,7 +236,7 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun getSiteUrl(): String {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return prefs.getString(KEY_SITE_URL, DEFAULT_URL) ?: DEFAULT_URL
+            return prefs.getString(KEY_SITE_URL, BuildConfig.DEFAULT_URL) ?: BuildConfig.DEFAULT_URL
         }
         
         /**
@@ -248,7 +246,7 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun getScheme(): String {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return prefs.getString(KEY_CUSTOM_SCHEME, DEFAULT_SCHEME) ?: DEFAULT_SCHEME
+            return prefs.getString(KEY_CUSTOM_SCHEME, BuildConfig.DEFAULT_SCHEME) ?: BuildConfig.DEFAULT_SCHEME
         }
         
         /**
@@ -259,9 +257,9 @@ class MainActivity : ComponentActivity() {
         fun getConfig(): String {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val config = JSONObject().apply {
-                put("siteUrl", prefs.getString(KEY_SITE_URL, DEFAULT_URL))
-                put("scheme", prefs.getString(KEY_CUSTOM_SCHEME, DEFAULT_SCHEME))
-                put("deepLink", "${prefs.getString(KEY_CUSTOM_SCHEME, DEFAULT_SCHEME)}://setup")
+                put("siteUrl", prefs.getString(KEY_SITE_URL, BuildConfig.DEFAULT_URL))
+                put("scheme", prefs.getString(KEY_CUSTOM_SCHEME, BuildConfig.DEFAULT_SCHEME))
+                put("deepLink", "${prefs.getString(KEY_CUSTOM_SCHEME, BuildConfig.DEFAULT_SCHEME)}://setup")
             }
             return config.toString()
         }

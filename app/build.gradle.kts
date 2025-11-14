@@ -12,8 +12,8 @@ android {
         applicationId = "me.talofa.app"
         minSdk = 24  // Android 7.0+
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
         
         // Better app metadata
         setProperty("archivesBaseName", "talofa-v$versionName")
