@@ -2,6 +2,8 @@ package me.talofa.webview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -17,13 +19,25 @@ import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
+    private lateinit var prefs: SharedPreferences
     
-    // Configure your site URL here
-    private val siteUrl = "https://talofa.me"
+    companion object {
+        private const val PREFS_NAME = "webview_settings"
+        private const val KEY_SITE_URL = "site_url"
+        private const val DEFAULT_URL = "https://talofa.me"
+    }
     
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        
+        // Handle deep link configuration
+        handleDeepLink(intent)
+        
+        // Get configured URL or use default
+        val siteUrl = prefs.getString(KEY_SITE_URL, DEFAULT_URL) ?: DEFAULT_URL
         
         webView = WebView(this).apply {
             settings.apply {
@@ -82,9 +96,41 @@ class MainActivity : ComponentActivity() {
         })
     }
     
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleDeepLink(it) }
+    }
+    
     override fun onDestroy() {
         webView.destroy()
         super.onDestroy()
+    }
+    
+    /**
+     * Handle deep link configuration
+     * Format: webview://setup?url=https://your-site.com
+     */
+    private fun handleDeepLink(intent: Intent) {
+        if (intent.action == Intent.ACTION_VIEW) {
+            intent.data?.let { uri ->
+                val url = uri.getQueryParameter("url")
+                
+                if (!url.isNullOrEmpty()) {
+                    // Save the URL
+                    prefs.edit().putString(KEY_SITE_URL, url).apply()
+                    
+                    // Show confirmation
+                    Toast.makeText(
+                        this,
+                        "Site URL configured: $url",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    
+                    // Reload the WebView with new URL
+                    webView.loadUrl(url)
+                }
+            }
+        }
     }
     
     /**
@@ -168,6 +214,16 @@ class MainActivity : ComponentActivity() {
                 put("sdkVersion", android.os.Build.VERSION.SDK_INT)
             }
             return info.toString()
+        }
+        
+        /**
+         * Get current configured site URL
+         * JavaScript: const url = Android.getSiteUrl()
+         */
+        @JavascriptInterface
+        fun getSiteUrl(): String {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getString(KEY_SITE_URL, DEFAULT_URL) ?: DEFAULT_URL
         }
     }
 }

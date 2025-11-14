@@ -91,8 +91,9 @@
         </div>
 
         <div class="button-group">
-            <h2>Device Info</h2>
+            <h2>Device & App Info</h2>
             <button onclick="getDeviceInfo()">Get Device Info</button>
+            <button onclick="getSiteUrl()">Get Configured URL</button>
         </div>
 
         <div class="info" id="info">
@@ -100,6 +101,7 @@
             <pre>// Direct calls
 Android.vibrate(0.5);
 Android.toast("Hello!");
+const url = Android.getSiteUrl();
 
 // JSON events
 Android.postMessage(JSON.stringify({
@@ -109,7 +111,10 @@ Android.postMessage(JSON.stringify({
 
 // Get info
 const info = Android.getDeviceInfo();
-console.log(JSON.parse(info));</pre>
+console.log(JSON.parse(info));
+
+// Configure via QR code:
+// webview://setup?url=https://your-site.com</pre>
         </div>
     </div>
 
@@ -160,6 +165,22 @@ console.log(JSON.parse(info));</pre>
                 `;
             } else {
                 alert('Device info only available in Android app');
+            }
+        }
+
+        function getSiteUrl() {
+            if (isAndroid) {
+                const url = Android.getSiteUrl();
+                document.getElementById('info').innerHTML = `
+                    <strong>🌐 Configured Site URL:</strong>
+                    <pre>${url}</pre>
+                    <br>
+                    <strong>💡 To change:</strong><br>
+                    Scan QR code with format:<br>
+                    <code>webview://setup?url=YOUR_URL</code>
+                `;
+            } else {
+                alert('Site URL only available in Android app');
             }
         }
 
